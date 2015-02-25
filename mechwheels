@@ -1,0 +1,218 @@
+#pragma platform(VEX)
+#pragma systemFile
+
+/* List of Methods:
+ *
+ * motorsOff(); Used to turn off all motors
+ * forwardFour(pwr, degs); used to move the bot forward
+ * backwardFour(""); moves the bot backwards
+ * rightSpin(""); spins bot to the right
+ * leftSpin(""); spins bot to the left
+ * crabRight(""); spins center wheel to the right
+ * crabLeft(""); spins center wheel to the left
+ * armDown(""); lowers arms
+ * armUp(""); raises arms
+ * armDownLimit(pwr); lowers arms to the extreme
+ * armUpLimit("); raises arms to the extreme
+ *
+ */
+
+
+ //Yay functions! These are some very basic functions, for use with autonomous and most likley Auto Auto.
+
+ //I could ramble for lines about this small issue, so I'll try to keep it short. You cannot reverse an I2C
+ //Intergraded Motor Encoder (IME), which surprisingly has caused some annoying issues. I had when goal in mind when
+ //releasing auto auto, and that was to make it as universally and easily accesable with very little edits needed.
+ //So not being able to reverse a motor encoder caused some pain, since lets say the bot is driving forward, the
+ //IME may count positivly or may count negativly, depending on which direction the motor is mounted. Thus this
+ //caused the inequalities in the forward, backward, and both crab functions to sometimes need to be swiched.
+ //I'm pretty sure I got around this issue by using the absolute value function, which appears to work now. But
+ //There was some reason I didnt use this fix months ago and I cannot for the life of me remember why. So even
+ //though it appears to work now, if you find some weird errors with simply the functions this is most likley
+ //why. So if all the motors are running in the right direction but the bot wont stop after it clearly passed the
+ //degrees limit, youll need to remove the abs() and mess with the direction of the inequality (either < or >)
+ //as well as the sign of the deg variable. Hopefully the abs() will work so you dont have to deal with the pain
+ //of guessing the signs. But I figure I would make it known of possible issues. Good luck :D Damn I did ramble
+ //after all xD
+
+//Method to stop motors
+void motorsOff()
+{
+	motor[frontRight] = 0;
+	motor[frontLeft] = 0;
+	motor[backRight] = 0;
+	motor[backLeft] = 0;
+	motor[armRight] = 20;
+	motor[armLeft] = 20;
+}
+
+//Method to intake
+void intakeIn()
+{
+	motor[intake] = 127;
+}
+
+//Method to outtake
+void intakeOut()
+{
+	motor[intake] = -127;
+}
+
+//Method to turn off intake
+void intakeOff()
+{
+	motor[intake] = -127;
+}
+
+//Method to go forward
+void forwardFour(int pwr, int degs)
+{
+	SensorValue[frontRightE] = 0;
+	while (abs(SensorValue[frontRightE]) <= degs)//This is were you may need to swich the < to a > and possibly the degs to -degs if it doesnt work.
+	{
+		motor[frontRight] = pwr;
+		motor[frontLeft] = pwr;
+		motor[backRight] = pwr;
+		motor[backLeft] = pwr;
+	}
+	motorsOff();
+}
+
+//Method to go backwards
+void backwardFour(int pwr, int degs)
+{
+	SensorValue[frontRightE] = 0;
+	while (abs(SensorValue[frontRightE]) <= degs)
+	{
+		motor[frontRight] = -pwr;
+		motor[frontLeft] = -pwr;
+		motor[backRight] = -pwr;
+		motor[backLeft] = -pwr;
+	}
+	motorsOff();
+}
+
+//Method to spin to the right
+void rightSpin(int pwr, int degs)
+{
+	SensorValue[gyro] = 0;
+	while (SensorValue[gyro] >= -degs)
+	{
+		motor[frontRight] = -pwr;
+		motor[frontLeft] = pwr;
+		motor[backRight] = -pwr;
+		motor[backLeft] = pwr;
+
+	}
+	motor[frontRight] = 10;
+	motor[frontLeft] = -10;
+	motor[backRight] = 10;
+	motor[backLeft] = -10;
+}
+
+//Method to spin to the left
+void leftSpin(int pwr, int degs)
+{
+	SensorValue[gyro] = 0;
+	while (SensorValue[gyro] <= degs)
+	{
+		motor[frontRight] = pwr;
+		motor[frontLeft] = -pwr;
+		motor[backRight] = pwr;
+		motor[backLeft] = -pwr;
+	}
+		motor[frontRight] = -10;
+	motor[frontLeft] = 10;
+	motor[backRight] = -10;
+	motor[backLeft] = 10;
+}
+
+//Method to CrabWalk to the Right
+void crabRight(int pwr, int degs)
+{
+	SensorValue[frontRightE] = 0;
+	while (abs(SensorValue[frontRightE]) <= degs)
+	{
+			motor[frontRight] = -pwr;
+			motor[frontLeft] = pwr;
+			motor[backRight] = pwr;
+			motor[backLeft] = -pwr;
+
+	}
+	motorsOff();
+}
+
+//Method to CrabWalk to the Left
+void crabLeft(int pwr, int degs)
+{
+	SensorValue[frontRightE] = 0;
+	while (abs(SensorValue[frontRightE]) <= degs)
+	{
+			motor[frontRight] = pwr;
+			motor[frontLeft] = -pwr;
+			motor[backRight] = -pwr;
+			motor[backLeft] = pwr;
+	}
+	motorsOff();
+}
+
+
+//Method to lower Arms
+void armDown(int pwr, int degs)
+{
+	//SensorValue[armLeftE] = 0;
+	while (SensorValue[armLeftE] <= degs)
+	{
+		motor[armRight] = -pwr;
+		motor[armLeft] = -pwr;
+	}
+	motorsOff();
+}
+
+//Method to raise Arms
+void armUp(int pwr, int degs)
+{
+	//SensorValue[armLeftE] = 0;
+	while (SensorValue[armLeftE] >= degs)
+	{
+		motor[armRight] = pwr;
+		motor[armLeft] = pwr;
+	}
+	motorsOff();
+}
+
+void gyroRight(int pwr)
+{
+	while(SensorValue[gyro] < -50)
+	{
+			motor[frontRight] = pwr;
+		motor[frontLeft] = -pwr;
+		motor[backRight] = pwr;
+		motor[backLeft] = -pwr;
+	}
+	motor[frontRight] = -10;
+	motor[frontLeft] = 10;
+	motor[backRight] = -10;
+	motor[backLeft] = 10;
+}
+
+void gyroLeft(int pwr)
+{
+	while(SensorValue[gyro] > 50)
+	{
+			motor[frontRight] = -pwr;
+		motor[frontLeft] = pwr;
+		motor[backRight] = -pwr;
+		motor[backLeft] = pwr;
+	}
+	motor[frontRight] = 10;
+	motor[frontLeft] = -10;
+	motor[backRight] = 10;
+	motor[backLeft] = -10;
+}
+
+//That's it! Feel free to contact me on the fourms on email me at mover333@gmail.com
+
+//You are free to make any edits and this code is public, but please give any credit for the original code to me, Mitchell Overfield.
+
+//Thanks for anyone and everyone who makes VEX possible, it has changed my life and I am forever grateful for these oppertunities.
